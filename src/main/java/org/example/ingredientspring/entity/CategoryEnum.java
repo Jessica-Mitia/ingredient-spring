@@ -1,4 +1,5 @@
 package org.example.ingredientspring.entity;
 
-public class CategoryEnum {
+public enum CategoryEnum {
+    VEGETABLE, ANIMAL, MARINE, DAIRY, OTHER
 }
