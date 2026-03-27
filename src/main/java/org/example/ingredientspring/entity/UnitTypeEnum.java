@@ -1,4 +1,5 @@
 package org.example.ingredientspring.entity;
 
-public class UnitTypeEnum {
+public enum UnitTypeEnum {
+    PCS, KG, L
 }
