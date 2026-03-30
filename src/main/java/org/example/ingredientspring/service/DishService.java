@@ -6,7 +6,6 @@ import org.example.ingredientspring.entity.Ingredient;
 import org.example.ingredientspring.exception.ResourceNotFoundException;
 import org.example.ingredientspring.repository.DishRepository;
 import org.example.ingredientspring.repository.IngredientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +17,13 @@ import java.util.stream.Collectors;
 @Service
 public class DishService {
 
-    @Autowired
-    private DishRepository dishRepository;
+    private final DishRepository dishRepository;
+    private final IngredientRepository ingredientRepository;
 
-    @Autowired
-    private IngredientRepository ingredientRepository;
+    public DishService(DishRepository dishRepository, IngredientRepository ingredientRepository) {
+        this.dishRepository = dishRepository;
+        this.ingredientRepository = ingredientRepository;
+    }
 
     public List<Dish> findAll() {
         return dishRepository.findAll();

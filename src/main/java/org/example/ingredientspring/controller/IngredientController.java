@@ -5,7 +5,6 @@ import org.example.ingredientspring.entity.StockValue;
 import org.example.ingredientspring.entity.UnitTypeEnum;
 import org.example.ingredientspring.service.IngredientService;
 import org.example.ingredientspring.validator.StockRequestValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -15,11 +14,13 @@ import java.util.List;
 @RequestMapping("/ingredients")
 public class IngredientController {
 
-    @Autowired
-    private IngredientService ingredientService;
+    private final IngredientService ingredientService;
+    private final StockRequestValidator stockRequestValidator;
 
-    @Autowired
-    private StockRequestValidator stockRequestValidator;
+    public IngredientController(IngredientService ingredientService, StockRequestValidator stockRequestValidator) {
+        this.ingredientService = ingredientService;
+        this.stockRequestValidator = stockRequestValidator;
+    }
 
     @GetMapping
     public List<Ingredient> getAllIngredients() {

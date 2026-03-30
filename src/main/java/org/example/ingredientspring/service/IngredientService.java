@@ -7,7 +7,6 @@ import org.example.ingredientspring.entity.StockValue;
 import org.example.ingredientspring.entity.UnitTypeEnum;
 import org.example.ingredientspring.exception.ResourceNotFoundException;
 import org.example.ingredientspring.repository.IngredientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -16,8 +15,11 @@ import java.util.List;
 @Service
 public class IngredientService {
 
-    @Autowired
-    private IngredientRepository ingredientRepository;
+    private final IngredientRepository ingredientRepository;
+
+    public IngredientService(IngredientRepository ingredientRepository) {
+        this.ingredientRepository = ingredientRepository;
+    }
 
     public List<Ingredient> findAll() {
         return ingredientRepository.findAll();

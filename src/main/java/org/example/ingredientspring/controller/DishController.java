@@ -4,7 +4,6 @@ import org.example.ingredientspring.dto.DishResponse;
 import org.example.ingredientspring.entity.Ingredient;
 import org.example.ingredientspring.exception.BadRequestException;
 import org.example.ingredientspring.service.DishService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,8 +13,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/dishes")
 public class DishController {
 
-    @Autowired
-    private DishService dishService;
+    private final DishService dishService;
+
+    public DishController(DishService dishService) {
+        this.dishService = dishService;
+    }
 
     @GetMapping
     public List<DishResponse> getAllDishes() {
