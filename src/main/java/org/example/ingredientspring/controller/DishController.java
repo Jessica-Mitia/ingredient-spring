@@ -26,6 +26,11 @@ public class DishController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/{id}")
+    public DishResponse getDishById(@PathVariable Integer id) {
+        return new DishResponse(dishService.findById(id));
+    }
+
     @PutMapping("/{id}/ingredients")
     public List<Ingredient> updateDishIngredients(@PathVariable Integer id, @RequestBody(required = false) List<Ingredient> ingredients) {
         if (ingredients == null) {
