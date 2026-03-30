@@ -5,6 +5,7 @@ import org.example.ingredientspring.entity.StockValue;
 import org.example.ingredientspring.entity.UnitTypeEnum;
 import org.example.ingredientspring.service.IngredientService;
 import org.example.ingredientspring.validator.StockRequestValidator;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -23,17 +24,17 @@ public class IngredientController {
     }
 
     @GetMapping
-    public List<Ingredient> getAllIngredients() {
-        return ingredientService.findAll();
+    public ResponseEntity<List<Ingredient>> getAllIngredients() {
+        return ResponseEntity.ok(ingredientService.findAll());
     }
 
     @GetMapping("/{id}")
-    public Ingredient getIngredientById(@PathVariable Integer id) {
-        return ingredientService.findById(id);
+    public ResponseEntity<Ingredient> getIngredientById(@PathVariable Integer id) {
+        return ResponseEntity.ok(ingredientService.findById(id));
     }
 
     @GetMapping("/{id}/stock")
-    public StockValue getStockAt(@PathVariable Integer id,
+    public ResponseEntity<StockValue> getStockAt(@PathVariable Integer id,
                                  @RequestParam(required = false) String at,
                                  @RequestParam(required = false) String unit) {
         stockRequestValidator.validateStockParameters(at, unit);
@@ -41,6 +42,6 @@ public class IngredientController {
         Instant atInstant = Instant.parse(at);
         UnitTypeEnum unitEnum = UnitTypeEnum.valueOf(unit.toUpperCase());
         
-        return ingredientService.getStockAt(id, atInstant, unitEnum);
+        return ResponseEntity.ok(ingredientService.getStockAt(id, atInstant, unitEnum));
     }
 }
