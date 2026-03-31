@@ -33,10 +33,7 @@ public class IngredientRepository {
         }
         return ingredients;
     }
-    
-    // Wait, the above while loop has a bug (rs.next() skipped if rs has next). 
-    // Let me fix the implementation in the next block.
-    
+
     public Optional<Ingredient> findById(Integer id) {
         String sql = "SELECT * FROM ingredient WHERE id = ?";
         try (Connection conn = dataSource.getConnection();

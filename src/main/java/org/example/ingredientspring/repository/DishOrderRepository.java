@@ -68,7 +68,6 @@ public class DishOrderRepository {
         DishOrder do_ent = new DishOrder();
         do_ent.setId(rs.getInt("id"));
         do_ent.setQuantity(rs.getInt("quantity"));
-        // Dish and Order objects will be partially populated or populated by service
         return do_ent;
     }
 }

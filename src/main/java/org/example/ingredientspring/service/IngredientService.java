@@ -30,8 +30,7 @@ public class IngredientService {
     public Ingredient findById(Integer id) {
         Ingredient ingredient = ingredientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingredient.id=" + id + " is not found"));
-        
-        // Manually fetch stock movements
+
         ingredient.setStockMovementList(stockMovementRepository.findByIngredientId(id));
         return ingredient;
     }

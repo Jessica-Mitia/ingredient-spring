@@ -37,12 +37,9 @@ public class DishService {
     public Dish findById(Integer id) {
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Dish.id=" + id + " is not found"));
-        
-        // Manually fetch associations
+
         List<DishIngredient> associations = dishIngredientRepository.findByDishId(id);
         for (DishIngredient di : associations) {
-            // We might need to fetch the full ingredient object if needed by callers
-            // But for now, let's just make sure they are present
         }
         dish.setDishIngredients(associations);
         return dish;
@@ -52,7 +49,6 @@ public class DishService {
     public List<Ingredient> updateDishIngredients(Integer dishId, List<Ingredient> ingredientsPayload) {
         Dish dish = findById(dishId);
 
-        // Clear existing associations in DB
         dishIngredientRepository.deleteByDishId(dishId);
 
         List<DishIngredient> newAssociations = new ArrayList<>();
@@ -63,7 +59,6 @@ public class DishService {
                     DishIngredient newAssoc = new DishIngredient();
                     newAssoc.setDish(dish);
                     newAssoc.setIngredient(optionalIngredient.get());
-                    // We might need to set default quantity/unit if not provided
                     newAssoc.setQuantity(1.0); 
                     
                     dishIngredientRepository.save(newAssoc, dishId);
