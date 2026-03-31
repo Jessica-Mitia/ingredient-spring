@@ -40,6 +40,14 @@ public class DishService {
 
         List<DishIngredient> associations = dishIngredientRepository.findByDishId(id);
         for (DishIngredient di : associations) {
+            Optional<Ingredient> optionalIngredient = ingredientRepository.findById(di.getIngredient().getId());
+            if (optionalIngredient.isPresent()) {
+                di.setIngredient(optionalIngredient.get());
+            }
+            Optional<Dish> optionalDish = dishRepository.findById(di.getDish().getId());
+            if (optionalDish.isPresent()) {
+                di.setDish(optionalDish.get());
+            }
         }
         dish.setDishIngredients(associations);
         return dish;
