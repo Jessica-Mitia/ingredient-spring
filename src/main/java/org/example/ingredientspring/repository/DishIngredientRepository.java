@@ -74,7 +74,7 @@ public class DishIngredientRepository {
         if (unitStr != null) {
             di.setUnitType(UnitTypeEnum.valueOf(unitStr));
         }
-        // Dish and Ingredient objects will be partially populated or populated by service
+
         return di;
     }
 }
