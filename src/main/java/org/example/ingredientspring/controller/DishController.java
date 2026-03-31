@@ -1,6 +1,7 @@
 package org.example.ingredientspring.controller;
 
 import org.example.ingredientspring.dto.DishResponse;
+import org.example.ingredientspring.entity.DishIngredient;
 import org.example.ingredientspring.entity.Ingredient;
 import org.example.ingredientspring.exception.BadRequestException;
 import org.example.ingredientspring.service.DishService;
@@ -30,6 +31,13 @@ public class DishController {
     @GetMapping("/{id}")
     public ResponseEntity<DishResponse> getDishById(@PathVariable Integer id) {
         return ResponseEntity.ok(new DishResponse(dishService.findById(id)));
+    }
+
+    @GetMapping("/{id}/ingredients")
+    public ResponseEntity<List<Ingredient>> getDishIngredients(@PathVariable Integer id) {
+        return ResponseEntity.ok(dishService.findById(id).getDishIngredients().stream()
+                .map(DishIngredient::getIngredient)
+                .collect(Collectors.toList()));
     }
 
     @PutMapping("/{id}/ingredients")
