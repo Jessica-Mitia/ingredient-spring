@@ -4,6 +4,7 @@ import org.example.ingredientspring.dto.StockMovementRequest;
 import org.example.ingredientspring.entity.*;
 import org.example.ingredientspring.exception.ResourceNotFoundException;
 import org.example.ingredientspring.repository.IngredientRepository;
+import org.example.ingredientspring.repository.StockMovementRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -15,9 +16,11 @@ import java.util.stream.Collectors;
 public class IngredientService {
 
     private final IngredientRepository ingredientRepository;
+    private final StockMovementRepository stockMovementRepository;
 
-    public IngredientService(IngredientRepository ingredientRepository) {
+    public IngredientService(IngredientRepository ingredientRepository, StockMovementRepository stockMovementRepository) {
         this.ingredientRepository = ingredientRepository;
+        this.stockMovementRepository = stockMovementRepository;
     }
 
     public List<Ingredient> findAll() {
@@ -25,8 +28,12 @@ public class IngredientService {
     }
 
     public Ingredient findById(Integer id) {
-        return ingredientRepository.findById(id)
+        Ingredient ingredient = ingredientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingredient.id=" + id + " is not found"));
+        
+        // Manually fetch stock movements
+        ingredient.setStockMovementList(stockMovementRepository.findByIngredientId(id));
+        return ingredient;
     }
 
     public StockValue getStockAt(Integer ingredientId, Instant at, UnitTypeEnum unit) {
@@ -75,12 +82,9 @@ public class IngredientService {
                 })
                 .collect(Collectors.toList());
 
-        if (ingredient.getStockMovementList() == null) {
-            ingredient.setStockMovementList(new ArrayList<>());
+        for (StockMovement m : newMovements) {
+            stockMovementRepository.save(m, ingredientId);
         }
-        
-        ingredient.getStockMovementList().addAll(newMovements);
-        ingredientRepository.save(ingredient);
         
         return newMovements;
     }

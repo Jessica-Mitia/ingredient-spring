@@ -4,6 +4,7 @@ import org.example.ingredientspring.entity.Dish;
 import org.example.ingredientspring.entity.DishIngredient;
 import org.example.ingredientspring.entity.Ingredient;
 import org.example.ingredientspring.exception.ResourceNotFoundException;
+import org.example.ingredientspring.repository.DishIngredientRepository;
 import org.example.ingredientspring.repository.DishRepository;
 import org.example.ingredientspring.repository.IngredientRepository;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,14 @@ public class DishService {
 
     private final DishRepository dishRepository;
     private final IngredientRepository ingredientRepository;
+    private final DishIngredientRepository dishIngredientRepository;
 
-    public DishService(DishRepository dishRepository, IngredientRepository ingredientRepository) {
+    public DishService(DishRepository dishRepository, 
+                       IngredientRepository ingredientRepository, 
+                       DishIngredientRepository dishIngredientRepository) {
         this.dishRepository = dishRepository;
         this.ingredientRepository = ingredientRepository;
+        this.dishIngredientRepository = dishIngredientRepository;
     }
 
     public List<Dish> findAll() {
@@ -30,46 +35,45 @@ public class DishService {
     }
 
     public Dish findById(Integer id) {
-        return dishRepository.findById(id)
+        Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Dish.id=" + id + " is not found"));
+        
+        // Manually fetch associations
+        List<DishIngredient> associations = dishIngredientRepository.findByDishId(id);
+        for (DishIngredient di : associations) {
+            // We might need to fetch the full ingredient object if needed by callers
+            // But for now, let's just make sure they are present
+        }
+        dish.setDishIngredients(associations);
+        return dish;
     }
 
     @Transactional
     public List<Ingredient> updateDishIngredients(Integer dishId, List<Ingredient> ingredientsPayload) {
         Dish dish = findById(dishId);
 
-        List<DishIngredient> currentAssociations = dish.getDishIngredients();
-        if (currentAssociations == null) {
-            currentAssociations = new ArrayList<>();
-            dish.setDishIngredients(currentAssociations);
-        }
+        // Clear existing associations in DB
+        dishIngredientRepository.deleteByDishId(dishId);
 
-        List<Integer> requestedIds = ingredientsPayload.stream()
-                .map(Ingredient::getId)
-                .filter(id -> id != null)
-                .collect(Collectors.toList());
-
-        currentAssociations.removeIf(di -> di.getIngredient() != null && !requestedIds.contains(di.getIngredient().getId()));
-
-        List<Integer> existingIds = currentAssociations.stream()
-                .map(di -> di.getIngredient().getId())
-                .collect(Collectors.toList());
-
-        for (Integer reqId : requestedIds) {
-            if (!existingIds.contains(reqId)) {
-                Optional<Ingredient> optionalIngredient = ingredientRepository.findById(reqId);
+        List<DishIngredient> newAssociations = new ArrayList<>();
+        for (Ingredient ingredientReq : ingredientsPayload) {
+            if (ingredientReq.getId() != null) {
+                Optional<Ingredient> optionalIngredient = ingredientRepository.findById(ingredientReq.getId());
                 if (optionalIngredient.isPresent()) {
                     DishIngredient newAssoc = new DishIngredient();
                     newAssoc.setDish(dish);
                     newAssoc.setIngredient(optionalIngredient.get());
-                    currentAssociations.add(newAssoc);
+                    // We might need to set default quantity/unit if not provided
+                    newAssoc.setQuantity(1.0); 
+                    
+                    dishIngredientRepository.save(newAssoc, dishId);
+                    newAssociations.add(newAssoc);
                 }
             }
         }
 
-        dishRepository.save(dish);
-
-        return currentAssociations.stream()
+        dish.setDishIngredients(newAssociations);
+        return newAssociations.stream()
                 .map(DishIngredient::getIngredient)
                 .collect(Collectors.toList());
     }
