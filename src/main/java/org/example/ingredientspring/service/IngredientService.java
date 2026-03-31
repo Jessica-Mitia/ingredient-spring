@@ -1,16 +1,15 @@
 package org.example.ingredientspring.service;
 
-import org.example.ingredientspring.entity.Ingredient;
-import org.example.ingredientspring.entity.MovementTypeEnum;
-import org.example.ingredientspring.entity.StockMovement;
-import org.example.ingredientspring.entity.StockValue;
-import org.example.ingredientspring.entity.UnitTypeEnum;
+import org.example.ingredientspring.dto.StockMovementRequest;
+import org.example.ingredientspring.entity.*;
 import org.example.ingredientspring.exception.ResourceNotFoundException;
 import org.example.ingredientspring.repository.IngredientRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class IngredientService {
@@ -49,5 +48,40 @@ public class IngredientService {
         }
 
         return new StockValue(totalStock, unit);
+    }
+
+    public List<StockMovement> getStockMovements(Integer ingredientId, Instant from, Instant to) {
+        Ingredient ingredient = findById(ingredientId);
+        
+        return ingredient.getStockMovementList().stream()
+                .filter(m -> {
+                    Instant creation = m.getCreationDateTime();
+                    if (creation == null) return false;
+                    return (from == null || !creation.isBefore(from)) && (to == null || !creation.isAfter(to));
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<StockMovement> addStockMovements(Integer ingredientId, List<StockMovementRequest> requests) {
+        Ingredient ingredient = findById(ingredientId);
+
+        List<StockMovement> newMovements = requests.stream()
+                .map(req -> {
+                    StockMovement m = new StockMovement();
+                    m.setValue(new StockValue(req.getValue(), req.getUnit()));
+                    m.setType(req.getType());
+                    m.setCreationDateTime(Instant.now());
+                    return m;
+                })
+                .collect(Collectors.toList());
+
+        if (ingredient.getStockMovementList() == null) {
+            ingredient.setStockMovementList(new ArrayList<>());
+        }
+        
+        ingredient.getStockMovementList().addAll(newMovements);
+        ingredientRepository.save(ingredient);
+        
+        return newMovements;
     }
 }

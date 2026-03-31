@@ -1,6 +1,8 @@
 package org.example.ingredientspring.controller;
 
+import org.example.ingredientspring.dto.StockMovementRequest;
 import org.example.ingredientspring.entity.Ingredient;
+import org.example.ingredientspring.entity.StockMovement;
 import org.example.ingredientspring.entity.StockValue;
 import org.example.ingredientspring.entity.UnitTypeEnum;
 import org.example.ingredientspring.service.IngredientService;
@@ -44,4 +46,25 @@ public class IngredientController {
         
         return ResponseEntity.ok(ingredientService.getStockAt(id, atInstant, unitEnum));
     }
+
+    @GetMapping("/{id}/stockMovements")
+    public ResponseEntity<List<StockMovement>> getStockMovements(
+            @PathVariable Integer id,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+        
+        Instant fromInstant = from != null ? Instant.parse(from) : null;
+        Instant toInstant = to != null ? Instant.parse(to) : null;
+        
+        return ResponseEntity.ok(ingredientService.getStockMovements(id, fromInstant, toInstant));
+    }
+
+    @PostMapping("/{id}/stockMovements")
+    public ResponseEntity<List<StockMovement>> addStockMovements(
+            @PathVariable Integer id,
+            @RequestBody List<StockMovementRequest> requests) {
+        
+        return ResponseEntity.ok(ingredientService.addStockMovements(id, requests));
+    }
+
 }
