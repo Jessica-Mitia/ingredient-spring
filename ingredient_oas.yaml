@@ -1,0 +1,282 @@
+openapi: 3.1.0
+info:
+  title: Ingredient API
+  description: Ingredient API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  '/ingredients':
+    get:
+      responses:
+        200:
+          description: List of ingredients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+
+  '/ingredients/{id}':
+    get:
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        200:
+          description: Ingredient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        404:
+          description: Ingredient not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Ingredient.id {id} is not found
+
+  '/ingredients/{id}/stock':
+    get:
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+        - name: at
+          in: query
+          schema:
+            type: string
+            format: date-time
+          required: true
+        - name: unit
+          in: query
+          schema:
+            type: string
+            enum: [ PCS, KG, L ]
+          required: true
+      responses:
+        200:
+          description: Value found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockValue'
+        404:
+          description: Ingredient not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Ingredient.id={id} not found
+        400:
+          description: parameter(s) missing
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Mandatory query parameter `at` and `unit` must be provided.
+
+  '/dishes':
+    get:
+      parameters:
+        - name: priceUnder
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: priceOver
+          in: query
+          schema:
+            type: number
+            format: double
+        - name: name
+          in: query
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+    post:
+      requestBody:
+        description: List of new dishes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DishRequest'
+        required: true
+      responses:
+        201:
+          description: Dishes created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+        400:
+          description: Dish already exists
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Dish.name={name} already exists
+        500:
+          description: Error during creation
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Error during creation
+
+
+  '/dishes/{id}/ingredients':
+    put:
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: list of ingredients
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Ingredient'
+        required: true
+      responses:
+        400:
+          description: RequestBody missing
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: The request body is missing
+        200:
+          description: List of ingredients updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+        404:
+          description: Dish not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Dish not found
+
+
+components:
+  schemas:
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          enum: [VEGETABLE, ANIMAL, MARINE, DAIRY, OTHER]
+        price:
+          type: number
+          format: double
+        stockMovementList:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockMovement'
+
+    StockMovement:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [IN, OUT]
+        creationDateTime:
+          type: string
+          format: date-time
+        stockValues:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockValue'
+
+    StockValue:
+      type: object
+      properties:
+        quantity:
+          type: number
+          format: double
+        unit:
+          type: string
+          enum: [PCS, KG, L]
+
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+        price:
+          type: number
+          format: double
+        name:
+          type: string
+        dishType:
+          type: string
+          enum: [STARTER, MAIN, DESSERT]
+        dishIngredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/DishIngredient'
+
+    DishIngredient:
+      type: object
+      properties:
+        dish:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        ingredient:
+          $ref: '#/components/schemas/Ingredient'
+        quantity:
+          type: number
+          format: double
+        unit:
+          type: string
+          enum: [PCS, KG, L]
+
+    DishRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        dishType:
+          type: string
+          enum: [STARTER, MAIN, DESSERT]
+        price:
+          type: number
+          format: double
